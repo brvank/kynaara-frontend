@@ -4,33 +4,33 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:kynaara_frontend/business_logic/blocs/loading_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/message_bloc.dart';
-import 'package:kynaara_frontend/data/model/channel.dart';
+import 'package:kynaara_frontend/data/model/product.dart';
 import 'package:kynaara_frontend/service/network/api_service.dart';
 import 'package:kynaara_frontend/utils/constants/apis.dart';
 import 'package:kynaara_frontend/utils/constants/warnings_messages.dart';
 
-class ChannelsTableViewController {
+class ProductsTableViewController {
   LoaderBloc loaderBloc = LoaderBloc();
   APIs apIs = APIs();
   MessageBloc messageBloc = MessageBloc("");
   ApiService apiService = ApiService();
-  List<Channel> channels = [];
+  List<Product> products = [];
 
   late Function logoutCallback;
 
-  ChannelsTableViewController(Function logoutCallback) {
+  ProductsTableViewController(Function logoutCallback) {
     logoutCallback = logoutCallback;
   }
 
-  //get channels
-  void getChannels(int start, int size, String? q, Function callback) async {
+  //get products
+  void getProducts(int start, int size, String? q, Function callback) async {
     //loader is not loading
     if (!loaderBloc.state) {
       //start loading
       loaderBloc.add(LoaderLoading());
 
       try {
-        String url = apIs.baseUrl + apIs.getChannels;
+        String url = apIs.baseUrl + apIs.getProducts;
 
         if (q == null) {
           q = "";
@@ -52,11 +52,11 @@ class ChannelsTableViewController {
             Map<String, dynamic> json = jsonDecode(response.body);
             if (json['success']) {
               //main network response
-              channels = [];
+              products = [];
               for (int i = 0; i < json['data']['result'].length; i++) {
-                channels.add(Channel.fromJson(json['data']['result'][i]));
+                products.add(Product.fromJson(json['data']['result'][i]));
               }
-              callback(start, start + channels.length, json['data']['count']);
+              callback(start, start + products.length, json['data']['count']);
             } else {
               setMessage(json['message']);
             }
@@ -76,7 +76,7 @@ class ChannelsTableViewController {
     }
   }
 
-  Future<bool> addChannel(Channel channel) async {
+  Future<bool> addProduct(Product product) async {
     bool result = false;
 
     //loader is not loading
@@ -86,13 +86,13 @@ class ChannelsTableViewController {
 
       try {
 
-        Map<String, String> channelMap = Map();
-        channelMap['channel_name'] = channel.name;
-        channelMap['link'] = channel.link;
-        channelMap['logo_link'] = channel.logoLink;
+        Map<String, Object> productMap = Map();
+        productMap['channel_id'] = product.channelId;
+        productMap['link'] = product.link;
+        productMap['image_link'] = product.imageLink;
 
         //getting response
-        Response response = await apiService.execute(apIs.baseUrl + apIs.addChannel, ApiMethod.post, body: jsonEncode(channelMap));
+        Response response = await apiService.execute(apIs.baseUrl + apIs.addProduct, ApiMethod.post, body: jsonEncode(productMap));
 
         //validate response
         if (response != null) {
@@ -127,7 +127,7 @@ class ChannelsTableViewController {
     return result;
   }
 
-  Future<bool> updateChannel(Channel channel) async {
+  Future<bool> updateProduct(Product product) async {
     bool result = false;
 
     //loader is not loading
@@ -137,14 +137,14 @@ class ChannelsTableViewController {
 
       try {
 
-        Map<String, Object> channelMap = Map();
-        channelMap['channel_id'] = channel.id;
-        channelMap['channel_name'] = channel.name;
-        channelMap['link'] = channel.link;
-        channelMap['logo_link'] = channel.logoLink;
+        Map<String, Object> productMap = Map();
+        productMap['product_id'] = product.id;
+        productMap['channel_id'] = product.channelId;
+        productMap['link'] = product.link;
+        productMap['image_link'] = product.imageLink;
 
         //getting response
-        Response response = await apiService.execute(apIs.baseUrl + apIs.updateChannel, ApiMethod.put, body: jsonEncode(channelMap));
+        Response response = await apiService.execute(apIs.baseUrl + apIs.updateProduct, ApiMethod.put, body: jsonEncode(productMap));
 
         //validate response
         if (response != null) {
@@ -179,7 +179,7 @@ class ChannelsTableViewController {
     return result;
   }
 
-  Future<bool> deleteChannel(int id) async {
+  Future<bool> deleteProduct(int id) async {
     bool result = false;
 
     //loader is not loading
@@ -190,7 +190,7 @@ class ChannelsTableViewController {
       try {
 
         //getting response
-        Response response = await apiService.execute(apIs.baseUrl + apIs.deleteChannel + id.toString(), ApiMethod.delete);
+        Response response = await apiService.execute(apIs.baseUrl + apIs.deleteProduct + id.toString(), ApiMethod.delete);
 
         //validate response
         if (response != null) {

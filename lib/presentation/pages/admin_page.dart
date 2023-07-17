@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kynaara_frontend/business_logic/controller/admin_page_controller.dart';
 import 'package:kynaara_frontend/presentation/screens/login_screen.dart';
 import 'package:kynaara_frontend/presentation/views/channels_table_view.dart';
+import 'package:kynaara_frontend/presentation/views/users_table_view.dart';
 import 'package:kynaara_frontend/presentation/widgets/session_expired_dialog.dart';
 
 class AdminPage extends StatefulWidget {
@@ -50,7 +51,7 @@ class _AdminPageState extends State<AdminPage> {
     ));
 
     tabViews.add(Container(
-      child: Text("Users Table"),
+      child: UsersTableView(),
     ));
 
     tabViews.add(Container(

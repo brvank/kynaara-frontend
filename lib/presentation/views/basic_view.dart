@@ -55,7 +55,7 @@ class _BasicTableViewState extends State<BasicTableView> {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(state),
-                  duration: const Duration(seconds: 1),
+                  duration: const Duration(seconds: 2),
                 ));
               }
             }

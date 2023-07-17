@@ -2,40 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/loading_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/message_bloc.dart';
-import 'package:kynaara_frontend/business_logic/controller/channels_table_view_controller.dart';
-import 'package:kynaara_frontend/data/model/channel.dart';
-import 'package:kynaara_frontend/presentation/widgets/channel_dialog.dart';
+import 'package:kynaara_frontend/business_logic/controller/users_table_view_controller.dart';
+import 'package:kynaara_frontend/data/model/user.dart';
+import 'package:kynaara_frontend/presentation/widgets/user_dialog.dart';
 import 'package:kynaara_frontend/presentation/widgets/delete_confirmation_dialog.dart';
 import 'package:kynaara_frontend/utils/constants/utility_functions.dart';
 
-class ChannelsTableView extends StatefulWidget {
-  const ChannelsTableView({Key? key}) : super(key: key);
+class UsersTableView extends StatefulWidget {
+  const UsersTableView({Key? key}) : super(key: key);
 
   @override
-  State<ChannelsTableView> createState() => _ChannelsTableViewState();
+  State<UsersTableView> createState() => _UsersTableViewState();
 }
 
-class _ChannelsTableViewState extends State<ChannelsTableView> {
-  late ChannelsTableViewController _channelsTableController;
+class _UsersTableViewState extends State<UsersTableView> {
+  late UsersTableViewController _usersTableController;
 
   int start = 0, size = 2, end = 0, total = 0;
 
-  TextEditingController channelNameController = TextEditingController();
+  TextEditingController userNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
-    _channelsTableController = ChannelsTableViewController(() {
+    _usersTableController = UsersTableViewController(() {
       logoutUser(context);
     });
 
-    getChannels();
+    getUsers();
   }
 
-  void getChannels() {
-    _channelsTableController.getChannels(
-        start, size, channelNameController.text, (start, end, total) {
+  void getUsers() {
+    _usersTableController.getUsers(
+        start, size, userNameController.text, (start, end, total) {
       this.start = start;
       this.end = end;
       this.total = total;
@@ -52,12 +52,12 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
         providers: [
           BlocProvider<LoaderBloc>(
             create: (context) {
-              return _channelsTableController.loaderBloc;
+              return _usersTableController.loaderBloc;
             },
           ),
           BlocProvider<MessageBloc>(
             create: (context) {
-              return _channelsTableController.messageBloc;
+              return _usersTableController.messageBloc;
             },
           )
         ],
@@ -92,9 +92,9 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                         children: [
                           TextButton(
                               onPressed: () {
-                                addChannelDialog();
+                                addUserDialog();
                               },
-                              child: Text("Add Channel"))
+                              child: Text("Add User"))
                         ],
                       ),
 
@@ -102,20 +102,20 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                       Row(
                         children: [
                           Expanded(flex: 1, child: Text("S.No.")),
-                          Expanded(flex: 2, child: Text("Name")),
-                          Expanded(flex: 2, child: Text("Link")),
-                          Expanded(flex: 2, child: Text("Date of Creation")),
+                          Expanded(flex: 2, child: Text("User Name")),
+                          Expanded(flex: 2, child: Text("Full Name")),
+                          Expanded(flex: 2, child: Text("Email")),
                           Expanded(flex: 1, child: Text("")),
                           Expanded(flex: 1, child: Text("")),
                         ],
                       ),
 
-                      //all channels
+                      //all users
                       Expanded(
                           child: ListView.builder(
                               shrinkWrap: true,
                               itemCount:
-                                  _channelsTableController.channels.length,
+                              _usersTableController.users.length,
                               itemBuilder: (context, i) {
                                 return Row(
                                   children: [
@@ -123,22 +123,22 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                                         flex: 1, child: Text("${i+1}")),
                                     Expanded(
                                         flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].name)),
+                                        child: Text(_usersTableController
+                                            .users[i].userName)),
                                     Expanded(
                                         flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].link)),
+                                        child: Text(_usersTableController
+                                            .users[i].name)),
                                     Expanded(
                                         flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].creationDate)),
+                                        child: Text(_usersTableController
+                                            .users[i].email)),
                                     Expanded(
                                         flex: 1,
                                         child: TextButton(
                                           child: Text("Edit"),
                                           onPressed: () {
-                                            updateChannelDialog(_channelsTableController.channels[i]);
+                                            updateUserDialog(_usersTableController.users[i]);
                                           },
                                         )),
                                     Expanded(
@@ -146,7 +146,7 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                                         child: TextButton(
                                           child: Text("Delete"),
                                           onPressed: () {
-                                            deleteChannelDialog(_channelsTableController.channels[i].id);
+                                            deleteUserDialog(_usersTableController.users[i].id);
                                           },
                                         )),
                                   ],
@@ -157,7 +157,7 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                           TextButton(
                             child: Text("Refresh"),
                             onPressed: () {
-                              getChannels();
+                              getUsers();
                             },
                           ),
                           TextButton(
@@ -189,7 +189,7 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
       if((start - size) >= 0){
         start = start - size;
 
-        getChannels();
+        getUsers();
       }
     }
   }
@@ -199,74 +199,68 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
       if((start + size) < total){
         start = start + size;
 
-        getChannels();
+        getUsers();
       }
     }
   }
 
-  void addChannelDialog() {
-    Channel channel = Channel(
-        id: 0,
-        creatorId: 0,
-        link: "",
-        logoLink: "",
-        name: "",
-        creationDate: "");
+  void addUserDialog() {
+    User user = User(id: 0, name: "", userName: "", email: "", userLevel: 0, alterSuperAdmin: false, alterAdmin: false, alterSalesPerson: false, alterChannel: false);
 
     showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) {
-          return ChannelDialog(
-              callback: (Channel channel) async {
+          return UserDialog(
+              callback: (User user) async {
                 bool result =
-                    await _channelsTableController.addChannel(channel);
+                await _usersTableController.addUser(user);
                 await Future.delayed(Duration.zero);
                 if (result) {
-                  getChannels();
+                  getUsers();
                 }
                 return result;
               },
               edit: false,
-              channel: channel);
+              user: user);
         });
   }
 
-  void updateChannelDialog(Channel channel){
+  void updateUserDialog(User user){
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context){
-        return ChannelDialog(
-          callback: (Channel channel) async {
-            bool result = await _channelsTableController.updateChannel(channel);
-            await Future.delayed(Duration.zero);
-            if(result){
-              getChannels();
-            }
+        context: context,
+        barrierDismissible: false,
+        builder: (context){
+          return UserDialog(
+            callback: (User user) async {
+              bool result = await _usersTableController.updateUser(user);
+              await Future.delayed(Duration.zero);
+              if(result){
+                getUsers();
+              }
 
-            return result;
-          },
-          edit: true,
-          channel: channel,
-        );
-      }
+              return result;
+            },
+            edit: true,
+            user: user,
+          );
+        }
     );
   }
 
-  void deleteChannelDialog(int id) async {
+  void deleteUserDialog(int id) async {
     bool? result = await showDialog(
-      context: context,
-      builder: (context){
-        return DeleteConfirmationDialog();
-      }
+        context: context,
+        builder: (context){
+          return DeleteConfirmationDialog();
+        }
     );
 
     if(result != null && result == true){
-      bool result = await _channelsTableController.deleteChannel(id);
+      bool result = await _usersTableController.deleteUser(id);
       await Future.delayed(Duration.zero);
       if(result){
-        getChannels();
+        getUsers();
       }
     }
   }

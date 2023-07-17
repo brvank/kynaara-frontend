@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(state),
-                duration: const Duration(seconds: 1),
+                duration: const Duration(seconds: 2),
               ));
             }
           }

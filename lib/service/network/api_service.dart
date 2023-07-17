@@ -28,7 +28,7 @@ class ApiService {
       case ApiMethod.delete:
         return _delete(url, token: token);
       case ApiMethod.put:
-        return _put(url, token: token);
+        return _put(url, token: token, body: body);
     }
   }
 

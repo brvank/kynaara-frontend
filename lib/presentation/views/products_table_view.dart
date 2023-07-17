@@ -2,40 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/loading_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/message_bloc.dart';
-import 'package:kynaara_frontend/business_logic/controller/channels_table_view_controller.dart';
-import 'package:kynaara_frontend/data/model/channel.dart';
-import 'package:kynaara_frontend/presentation/widgets/channel_dialog.dart';
+import 'package:kynaara_frontend/business_logic/controller/products_table_view_controller.dart';
+import 'package:kynaara_frontend/data/model/product.dart';
+import 'package:kynaara_frontend/presentation/widgets/product_dialog.dart';
 import 'package:kynaara_frontend/presentation/widgets/delete_confirmation_dialog.dart';
 import 'package:kynaara_frontend/utils/constants/utility_functions.dart';
 
-class ChannelsTableView extends StatefulWidget {
-  const ChannelsTableView({Key? key}) : super(key: key);
+class ProductsTableView extends StatefulWidget {
+  const ProductsTableView({Key? key}) : super(key: key);
 
   @override
-  State<ChannelsTableView> createState() => _ChannelsTableViewState();
+  State<ProductsTableView> createState() => _ProductsTableViewState();
 }
 
-class _ChannelsTableViewState extends State<ChannelsTableView> {
-  late ChannelsTableViewController _channelsTableController;
+class _ProductsTableViewState extends State<ProductsTableView> {
+  late ProductsTableViewController _productsTableController;
 
   int start = 0, size = 2, end = 0, total = 0;
 
-  TextEditingController channelNameController = TextEditingController();
+  TextEditingController productNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
-    _channelsTableController = ChannelsTableViewController(() {
+    _productsTableController = ProductsTableViewController(() {
       logoutUser(context);
     });
 
-    getChannels();
+    getProducts();
   }
 
-  void getChannels() {
-    _channelsTableController.getChannels(
-        start, size, channelNameController.text, (start, end, total) {
+  void getProducts() {
+    _productsTableController.getProducts(
+        start, size, productNameController.text, (start, end, total) {
       this.start = start;
       this.end = end;
       this.total = total;
@@ -52,12 +52,12 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
         providers: [
           BlocProvider<LoaderBloc>(
             create: (context) {
-              return _channelsTableController.loaderBloc;
+              return _productsTableController.loaderBloc;
             },
           ),
           BlocProvider<MessageBloc>(
             create: (context) {
-              return _channelsTableController.messageBloc;
+              return _productsTableController.messageBloc;
             },
           )
         ],
@@ -92,9 +92,9 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                         children: [
                           TextButton(
                               onPressed: () {
-                                addChannelDialog();
+                                addProductDialog();
                               },
-                              child: Text("Add Channel"))
+                              child: Text("Add Product"))
                         ],
                       ),
 
@@ -102,7 +102,7 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                       Row(
                         children: [
                           Expanded(flex: 1, child: Text("S.No.")),
-                          Expanded(flex: 2, child: Text("Name")),
+                          Expanded(flex: 2, child: Text("Product Url")),
                           Expanded(flex: 2, child: Text("Link")),
                           Expanded(flex: 2, child: Text("Date of Creation")),
                           Expanded(flex: 1, child: Text("")),
@@ -110,12 +110,12 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                         ],
                       ),
 
-                      //all channels
+                      //all products
                       Expanded(
                           child: ListView.builder(
                               shrinkWrap: true,
                               itemCount:
-                                  _channelsTableController.channels.length,
+                              _productsTableController.products.length,
                               itemBuilder: (context, i) {
                                 return Row(
                                   children: [
@@ -123,22 +123,22 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                                         flex: 1, child: Text("${i+1}")),
                                     Expanded(
                                         flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].name)),
+                                        child: Text(_productsTableController
+                                            .products[i].link)),
                                     Expanded(
                                         flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].link)),
+                                        child: Text(_productsTableController
+                                            .products[i].imageLink)),
                                     Expanded(
                                         flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].creationDate)),
+                                        child: Text(_productsTableController
+                                            .products[i].dateCreated)),
                                     Expanded(
                                         flex: 1,
                                         child: TextButton(
                                           child: Text("Edit"),
                                           onPressed: () {
-                                            updateChannelDialog(_channelsTableController.channels[i]);
+                                            updateProductDialog(_productsTableController.products[i]);
                                           },
                                         )),
                                     Expanded(
@@ -146,7 +146,7 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                                         child: TextButton(
                                           child: Text("Delete"),
                                           onPressed: () {
-                                            deleteChannelDialog(_channelsTableController.channels[i].id);
+                                            deleteProductDialog(_productsTableController.products[i].id);
                                           },
                                         )),
                                   ],
@@ -157,7 +157,7 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                           TextButton(
                             child: Text("Refresh"),
                             onPressed: () {
-                              getChannels();
+                              getProducts();
                             },
                           ),
                           TextButton(
@@ -189,7 +189,7 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
       if((start - size) >= 0){
         start = start - size;
 
-        getChannels();
+        getProducts();
       }
     }
   }
@@ -199,74 +199,68 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
       if((start + size) < total){
         start = start + size;
 
-        getChannels();
+        getProducts();
       }
     }
   }
 
-  void addChannelDialog() {
-    Channel channel = Channel(
-        id: 0,
-        creatorId: 0,
-        link: "",
-        logoLink: "",
-        name: "",
-        creationDate: "");
+  void addProductDialog() {
+    Product product = Product(id: 0, creatorId: 0, channelId: 0, assigneeId: 0, link: "", imageLink: "", dateCreated: "", dateAssigned: "");
 
     showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) {
-          return ChannelDialog(
-              callback: (Channel channel) async {
+          return ProductDialog(
+              callback: (Product product) async {
                 bool result =
-                    await _channelsTableController.addChannel(channel);
+                await _productsTableController.addProduct(product);
                 await Future.delayed(Duration.zero);
                 if (result) {
-                  getChannels();
+                  getProducts();
                 }
                 return result;
               },
               edit: false,
-              channel: channel);
+              product: product);
         });
   }
 
-  void updateChannelDialog(Channel channel){
+  void updateProductDialog(Product product){
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context){
-        return ChannelDialog(
-          callback: (Channel channel) async {
-            bool result = await _channelsTableController.updateChannel(channel);
-            await Future.delayed(Duration.zero);
-            if(result){
-              getChannels();
-            }
+        context: context,
+        barrierDismissible: false,
+        builder: (context){
+          return ProductDialog(
+            callback: (Product product) async {
+              bool result = await _productsTableController.updateProduct(product);
+              await Future.delayed(Duration.zero);
+              if(result){
+                getProducts();
+              }
 
-            return result;
-          },
-          edit: true,
-          channel: channel,
-        );
-      }
+              return result;
+            },
+            edit: true,
+            product: product,
+          );
+        }
     );
   }
 
-  void deleteChannelDialog(int id) async {
+  void deleteProductDialog(int id) async {
     bool? result = await showDialog(
-      context: context,
-      builder: (context){
-        return DeleteConfirmationDialog();
-      }
+        context: context,
+        builder: (context){
+          return DeleteConfirmationDialog();
+        }
     );
 
     if(result != null && result == true){
-      bool result = await _channelsTableController.deleteChannel(id);
+      bool result = await _productsTableController.deleteProduct(id);
       await Future.delayed(Duration.zero);
       if(result){
-        getChannels();
+        getProducts();
       }
     }
   }

@@ -1,6 +1,6 @@
 class User {
   int id, userLevel;
-  String name, userName, email;
+  String name, userName, email, password = "";
   bool alterSuperAdmin, alterAdmin, alterSalesPerson, alterChannel;
 
   User(
@@ -18,7 +18,7 @@ class User {
     return User(
         id: json['user_id'],
         name: json['user_full_name'],
-        email: json['user_email'],
+        email: json['user_email'] ?? "",
         userName: json['user_user_name'],
         userLevel: json['user_user_level'],
         alterSuperAdmin: json['user_permissions']['alterSuperAdmin'],
