@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:kynaara_frontend/data/model/channel.dart';
 import 'package:kynaara_frontend/data/model/product.dart';
+import 'package:kynaara_frontend/data/model/user.dart';
+import 'package:kynaara_frontend/presentation/widgets/channel_select_dialog.dart';
 
 class ProductDialog extends StatefulWidget {
   final Function callback;
@@ -21,6 +24,10 @@ class _ProductDialogState extends State<ProductDialog> {
       _productImageLinkController = TextEditingController();
 
   bool loading = false;
+
+  //to fetch channel, creator and assignee details
+  Channel? channel = null;
+  User? creator = null, assignee = null;
 
   @override
   void initState() {
@@ -69,17 +76,27 @@ class _ProductDialogState extends State<ProductDialog> {
             ),
             enabled: !loading,
           ),
+          TextButton(onPressed: () async {
+            channel = await showDialog(context: context, builder: (context){
+              return ChannelSelectDialog();
+            });
+          }, child: Text("Select Channel")),
           TextButton(
             child: loading
                 ? CircularProgressIndicator()
                 : (widget.edit ? Text("Update Product") : Text("Add Product")),
             onPressed: () async {
               if (!loading) {
+                if(channel == null){
+                  //channel required
+                  return;
+                }
                 setState(() {
                   loading = true;
                 });
                 widget.product.link = _productLinkController.text;
                 widget.product.imageLink = _productImageLinkController.text;
+                widget.product.channelId = channel!.id;
                 bool? result = await widget.callback(widget.product);
                 setState(() {
                   loading = false;

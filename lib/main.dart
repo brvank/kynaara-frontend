@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kynaara_frontend/data/repositories/session_manager.dart';
 import 'package:kynaara_frontend/presentation/screens/home_screen.dart';
 import 'package:kynaara_frontend/presentation/screens/login_screen.dart';
+import 'package:kynaara_frontend/presentation/screens/redirect_screen.dart';
 import 'package:kynaara_frontend/utils/configurations/route_configuration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,6 +35,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/redirect' : (context) => const RedirectScreen()
+      },
       theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange)
       ),

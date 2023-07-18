@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kynaara_frontend/data/model/user.dart';
 import 'package:kynaara_frontend/utils/constants/ui_text_constants.dart';
+import 'package:kynaara_frontend/utils/constants/utility_functions.dart';
 
 class UserDetailsDialog extends StatelessWidget {
   final bool self;
@@ -14,11 +15,11 @@ class UserDetailsDialog extends StatelessWidget {
     String userLevel = "";
 
     if(user.userLevel == 1){
-      userLevel = "Super Admin";
+      userLevel = superAdmin;
     }else if(user.userLevel == 2){
-      userLevel = "Admin";
+      userLevel = admin;
     }else if(user.userLevel == 3){
-      userLevel = "Sales Person";
+      userLevel = salesPerson;
     }
 
     List<Widget> actions = [];

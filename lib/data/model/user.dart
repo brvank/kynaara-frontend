@@ -1,7 +1,7 @@
 class User {
   int id, userLevel;
   String name, userName, email, password = "";
-  bool alterSuperAdmin, alterAdmin, alterSalesPerson, alterChannel;
+  bool alterSuperAdmin, alterAdmin, alterSalesPerson, alterChannel, alterProduct;
 
   User(
       {required this.id,
@@ -12,7 +12,8 @@ class User {
       required this.alterSuperAdmin,
       required this.alterAdmin,
       required this.alterSalesPerson,
-      required this.alterChannel});
+      required this.alterChannel,
+      required this.alterProduct});
 
   factory User.fromJson(Map json) {
     return User(
@@ -24,6 +25,7 @@ class User {
         alterSuperAdmin: json['user_permissions']['alterSuperAdmin'],
         alterAdmin: json['user_permissions']['alterAdmin'],
         alterSalesPerson: json['user_permissions']['alterSalesPerson'],
+        alterProduct: json['user_permissions']['alterProduct'],
         alterChannel: json['user_permissions']['alterChannel']);
   }
 }

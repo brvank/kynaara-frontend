@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -23,7 +24,7 @@ class ProductsTableViewController {
   }
 
   //get products
-  void getProducts(int start, int size, String? q, Function callback) async {
+  void getProducts(int start, int size, String? q, int channelId, int? assigneeId, Function callback) async {
     //loader is not loading
     if (!loaderBloc.state) {
       //start loading
@@ -36,7 +37,11 @@ class ProductsTableViewController {
           q = "";
         }
 
-        url = "$url?start=$start&size=$size&q=$q";
+        url = "$url?start=$start&size=$size&q=${q}&channelId=$channelId";
+
+        if(assigneeId != null){
+          url = "$url&assigneeId=$assigneeId";
+        }
 
         //getting response
         Response response = await apiService.execute(url, ApiMethod.get);
@@ -145,6 +150,56 @@ class ProductsTableViewController {
 
         //getting response
         Response response = await apiService.execute(apIs.baseUrl + apIs.updateProduct, ApiMethod.put, body: jsonEncode(productMap));
+
+        //validate response
+        if (response != null) {
+          if (response.statusCode >= 500) {
+            setMessage(CustomWarningsMessages.error5XX);
+          } else if (response.statusCode == 401) {
+            logoutCallback();
+          } else {
+            print(response.body);
+            Map<String, dynamic> json = jsonDecode(response.body);
+            if (json['success']) {
+              setMessage(json['message']);
+              result = true;
+            } else {
+              setMessage(json['message']);
+            }
+          }
+        } else {
+          setMessage(CustomWarningsMessages.unknownErrorOccured);
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print(e);
+        }
+        setMessage(CustomWarningsMessages.unknownErrorOccured);
+      }
+
+      //stop loading
+      loaderBloc.add(LoaderStopped());
+    }
+
+    return result;
+  }
+
+  Future<bool> assignProduct(int productId, int assigneeId) async {
+    bool result = false;
+
+    //loader is not loading
+    if (!loaderBloc.state) {
+      //start loading
+      loaderBloc.add(LoaderLoading());
+
+      try {
+
+        Map<String, Object> productMap = Map();
+        productMap['assignee_id'] = assigneeId;
+        productMap['product_id'] = productId;
+
+        //getting response
+        Response response = await apiService.execute(apIs.baseUrl + apIs.assignProduct, ApiMethod.put, body: jsonEncode(productMap));
 
         //validate response
         if (response != null) {

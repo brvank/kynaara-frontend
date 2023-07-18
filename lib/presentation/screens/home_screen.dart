@@ -105,8 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _homeScreenController.user == null
             ? Container()
             : ((_homeScreenController.user!.userLevel >= 3)
-                ? SalesPersonPage(logoutCallback: logoutUser,)
-                : AdminPage(logoutCallback: logoutUser,))
+                ? SalesPersonPage(logoutCallback: logoutUser, user: _homeScreenController.user!,)
+                : AdminPage(logoutCallback: logoutUser, user: _homeScreenController.user!,))
       ],
     );
   }

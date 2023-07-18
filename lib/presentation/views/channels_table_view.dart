@@ -4,12 +4,14 @@ import 'package:kynaara_frontend/business_logic/blocs/loading_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/message_bloc.dart';
 import 'package:kynaara_frontend/business_logic/controller/channels_table_view_controller.dart';
 import 'package:kynaara_frontend/data/model/channel.dart';
+import 'package:kynaara_frontend/data/model/user.dart';
 import 'package:kynaara_frontend/presentation/widgets/channel_dialog.dart';
 import 'package:kynaara_frontend/presentation/widgets/delete_confirmation_dialog.dart';
 import 'package:kynaara_frontend/utils/constants/utility_functions.dart';
 
 class ChannelsTableView extends StatefulWidget {
-  const ChannelsTableView({Key? key}) : super(key: key);
+  final User user;
+  const ChannelsTableView({Key? key, required this.user}) : super(key: key);
 
   @override
   State<ChannelsTableView> createState() => _ChannelsTableViewState();
@@ -41,8 +43,13 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
       this.total = total;
 
       setState(() {
-
+        Future.delayed(Duration.zero).then((value){
+          if(_channelsTableController.channels.isEmpty){
+            getPrev();
+          }
+        });
       });
+
     });
   }
 
@@ -206,8 +213,8 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
 
   void addChannelDialog() {
     Channel channel = Channel(
-        id: 0,
-        creatorId: 0,
+        id: -1,
+        creatorId: -1,
         link: "",
         logoLink: "",
         name: "",

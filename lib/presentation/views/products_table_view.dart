@@ -3,13 +3,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/loading_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/message_bloc.dart';
 import 'package:kynaara_frontend/business_logic/controller/products_table_view_controller.dart';
+import 'package:kynaara_frontend/data/model/channel.dart';
 import 'package:kynaara_frontend/data/model/product.dart';
+import 'package:kynaara_frontend/data/model/user.dart';
+import 'package:kynaara_frontend/presentation/widgets/channel_select_dialog.dart';
 import 'package:kynaara_frontend/presentation/widgets/product_dialog.dart';
 import 'package:kynaara_frontend/presentation/widgets/delete_confirmation_dialog.dart';
+import 'package:kynaara_frontend/presentation/widgets/user_select_dialog.dart';
+import 'package:kynaara_frontend/utils/constants/ui_text_constants.dart';
 import 'package:kynaara_frontend/utils/constants/utility_functions.dart';
 
 class ProductsTableView extends StatefulWidget {
-  const ProductsTableView({Key? key}) : super(key: key);
+  final User user;
+  final bool salesPerson;
+  const ProductsTableView(
+      {Key? key, required this.user, required this.salesPerson})
+      : super(key: key);
 
   @override
   State<ProductsTableView> createState() => _ProductsTableViewState();
@@ -20,6 +29,8 @@ class _ProductsTableViewState extends State<ProductsTableView> {
 
   int start = 0, size = 2, end = 0, total = 0;
 
+  Channel? channel = null;
+
   TextEditingController productNameController = TextEditingController();
 
   @override
@@ -29,21 +40,28 @@ class _ProductsTableViewState extends State<ProductsTableView> {
     _productsTableController = ProductsTableViewController(() {
       logoutUser(context);
     });
-
-    getProducts();
   }
 
   void getProducts() {
-    _productsTableController.getProducts(
-        start, size, productNameController.text, (start, end, total) {
-      this.start = start;
-      this.end = end;
-      this.total = total;
+    if (channel != null) {
+      _productsTableController.getProducts(
+          start,
+          size,
+          productNameController.text,
+          channel!.id,
+          (widget.salesPerson ? widget.user.id : null), (start, end, total) {
+        this.start = start;
+        this.end = end;
+        this.total = total;
 
-      setState(() {
-
+        setState(() {});
       });
-    });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(UITextConstants.channelNotSelected),
+        duration: const Duration(seconds: 2),
+      ));
+    }
   }
 
   @override
@@ -91,13 +109,21 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
+                              onPressed: () async {
+                                channel = await showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return ChannelSelectDialog();
+                                    });
+                              },
+                              child: Text("Select Channel")),
+                          TextButton(
                               onPressed: () {
                                 addProductDialog();
                               },
-                              child: Text("Add Product"))
+                              child: Text("Add Product")),
                         ],
                       ),
-
                       //all headings
                       Row(
                         children: [
@@ -105,6 +131,7 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                           Expanded(flex: 2, child: Text("Product Url")),
                           Expanded(flex: 2, child: Text("Link")),
                           Expanded(flex: 2, child: Text("Date of Creation")),
+                          Expanded(flex: 1, child: Text("")),
                           Expanded(flex: 1, child: Text("")),
                           Expanded(flex: 1, child: Text("")),
                         ],
@@ -115,12 +142,11 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                           child: ListView.builder(
                               shrinkWrap: true,
                               itemCount:
-                              _productsTableController.products.length,
+                                  _productsTableController.products.length,
                               itemBuilder: (context, i) {
                                 return Row(
                                   children: [
-                                    Expanded(
-                                        flex: 1, child: Text("${i+1}")),
+                                    Expanded(flex: 1, child: Text("${i + 1}")),
                                     Expanded(
                                         flex: 2,
                                         child: Text(_productsTableController
@@ -138,7 +164,25 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                                         child: TextButton(
                                           child: Text("Edit"),
                                           onPressed: () {
-                                            updateProductDialog(_productsTableController.products[i]);
+                                            updateProductDialog(
+                                                _productsTableController
+                                                    .products[i]);
+                                          },
+                                        )),
+                                    Expanded(
+                                        flex: 1,
+                                        child: TextButton(
+                                          child: _productsTableController.products[i].assigneeId == null ? Text("Assign") : Text("Re-Assign"),
+                                          onPressed: () async {
+                                            User? user = await showDialog(context: context, builder: (context){
+                                              return UserSelectDialog(userLevel: userLevel(salesPerson),);
+                                            });
+
+                                            if(user != null){
+                                              await _productsTableController.assignProduct(_productsTableController.products[i].id, user.id);
+                                              await Future.delayed(Duration.zero);
+                                              getProducts();
+                                            }
                                           },
                                         )),
                                     Expanded(
@@ -146,7 +190,9 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                                         child: TextButton(
                                           child: Text("Delete"),
                                           onPressed: () {
-                                            deleteProductDialog(_productsTableController.products[i].id);
+                                            deleteProductDialog(
+                                                _productsTableController
+                                                    .products[i].id);
                                           },
                                         )),
                                   ],
@@ -184,9 +230,9 @@ class _ProductsTableViewState extends State<ProductsTableView> {
         ));
   }
 
-  void getPrev(){
-    if(start != 0){
-      if((start - size) >= 0){
+  void getPrev() {
+    if (start != 0) {
+      if ((start - size) >= 0) {
         start = start - size;
 
         getProducts();
@@ -194,9 +240,9 @@ class _ProductsTableViewState extends State<ProductsTableView> {
     }
   }
 
-  void getNext(){
-    if(end <= total && total != 0){
-      if((start + size) < total){
+  void getNext() {
+    if (end <= total && total != 0) {
+      if ((start + size) < total) {
         start = start + size;
 
         getProducts();
@@ -205,7 +251,15 @@ class _ProductsTableViewState extends State<ProductsTableView> {
   }
 
   void addProductDialog() {
-    Product product = Product(id: 0, creatorId: 0, channelId: 0, assigneeId: 0, link: "", imageLink: "", dateCreated: "", dateAssigned: "");
+    Product product = Product(
+        id: -1,
+        creatorId: -1,
+        channelId: -1,
+        assigneeId: -1,
+        link: "",
+        imageLink: "",
+        dateCreated: "",
+        dateAssigned: "");
 
     showDialog(
         context: context,
@@ -214,7 +268,7 @@ class _ProductsTableViewState extends State<ProductsTableView> {
           return ProductDialog(
               callback: (Product product) async {
                 bool result =
-                await _productsTableController.addProduct(product);
+                    await _productsTableController.addProduct(product);
                 await Future.delayed(Duration.zero);
                 if (result) {
                   getProducts();
@@ -226,16 +280,17 @@ class _ProductsTableViewState extends State<ProductsTableView> {
         });
   }
 
-  void updateProductDialog(Product product){
+  void updateProductDialog(Product product) {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context){
+        builder: (context) {
           return ProductDialog(
             callback: (Product product) async {
-              bool result = await _productsTableController.updateProduct(product);
+              bool result =
+                  await _productsTableController.updateProduct(product);
               await Future.delayed(Duration.zero);
-              if(result){
+              if (result) {
                 getProducts();
               }
 
@@ -244,22 +299,20 @@ class _ProductsTableViewState extends State<ProductsTableView> {
             edit: true,
             product: product,
           );
-        }
-    );
+        });
   }
 
   void deleteProductDialog(int id) async {
     bool? result = await showDialog(
         context: context,
-        builder: (context){
+        builder: (context) {
           return DeleteConfirmationDialog();
-        }
-    );
+        });
 
-    if(result != null && result == true){
+    if (result != null && result == true) {
       bool result = await _productsTableController.deleteProduct(id);
       await Future.delayed(Duration.zero);
-      if(result){
+      if (result) {
         getProducts();
       }
     }

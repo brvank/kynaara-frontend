@@ -9,7 +9,8 @@ import 'package:kynaara_frontend/presentation/widgets/delete_confirmation_dialog
 import 'package:kynaara_frontend/utils/constants/utility_functions.dart';
 
 class UsersTableView extends StatefulWidget {
-  const UsersTableView({Key? key}) : super(key: key);
+  final User user;
+  const UsersTableView({Key? key, required this.user}) : super(key: key);
 
   @override
   State<UsersTableView> createState() => _UsersTableViewState();
@@ -205,7 +206,7 @@ class _UsersTableViewState extends State<UsersTableView> {
   }
 
   void addUserDialog() {
-    User user = User(id: 0, name: "", userName: "", email: "", userLevel: 0, alterSuperAdmin: false, alterAdmin: false, alterSalesPerson: false, alterChannel: false);
+    User user = User(id: -1, name: "", userName: "", email: "", userLevel: -1, alterSuperAdmin: false, alterAdmin: false, alterSalesPerson: false, alterChannel: false, alterProduct: false);
 
     showDialog(
         context: context,
@@ -222,7 +223,8 @@ class _UsersTableViewState extends State<UsersTableView> {
                 return result;
               },
               edit: false,
-              user: user);
+              user: user,
+          self: widget.user,);
         });
   }
 
@@ -243,6 +245,7 @@ class _UsersTableViewState extends State<UsersTableView> {
             },
             edit: true,
             user: user,
+            self: widget.user,
           );
         }
     );
