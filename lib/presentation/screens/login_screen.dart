@@ -58,20 +58,18 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-                flex: 3,
-                child: Container(
-                    decoration: BoxDecoration(
-                        image: DecorationImage(
-                            image: AssetImage("assets/images/banner.png"),
-                            fit: BoxFit.fitHeight)))),
-            Expanded(flex: 2, child: loginForm())
-          ],
-        ),
+      body: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+              flex: 3,
+              child: Container(
+                  decoration: const BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage("assets/images/banner.png"),
+                          fit: BoxFit.fitHeight)))),
+          Expanded(flex: 2, child: loginForm())
+        ],
       ),
     );
   }
@@ -102,49 +100,68 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
         builder: (BuildContext context, state) {
-          return Container(
-            child: BlocBuilder<LoaderBloc, bool>(
-              builder: (context, state) {
-                return Column(
+          return BlocBuilder<LoaderBloc, bool>(
+            builder: (context, state) {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
                   mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(UITextConstants.appName),
-                    TextField(
-                      autofocus: true,
-                      cursorColor: Colors.deepOrange,
-                      controller: _userNameController,
-                      decoration: const InputDecoration(
-                        labelText: "User Name",
-                        border: InputBorder.none,
+                    Container(margin: const EdgeInsets.all(8), child: Text(UITextConstants.appName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)),
+                    Container(
+                      margin: const EdgeInsets.only(left: 4, right: 4, top: 8, bottom: 8),
+                      child: TextField(
+                        autofocus: true,
+                        cursorColor: Colors.orangeAccent,
+                        controller: _userNameController,
+                        style: TextStyle(color: state ? Colors.grey : Colors.orangeAccent),
+                        decoration: const InputDecoration(
+                          labelText: "User Name",
+                          border: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.orangeAccent)),
+                          disabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.grey)),
+                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.grey)),
+                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.orangeAccent))
+                        ),
+                        enabled: state ? false : true,
                       ),
-                      enabled: state ? false : true,
                     ),
-                    TextField(
-                      autofocus: true,
-                      cursorColor: Colors.deepOrange,
-                      obscureText: true,
-                      obscuringCharacter: '*',
-                      controller: _passwordController,
-                      decoration: const InputDecoration(
-                        labelText: "Password",
-                        border: InputBorder.none,
+                    Container(
+                      margin: const EdgeInsets.only(left: 4, right: 4, top: 8, bottom: 8),
+                      child: TextField(
+                        autofocus: true,
+                        cursorColor: Colors.orangeAccent,
+                        obscureText: true,
+                        obscuringCharacter: '*',
+                        controller: _passwordController,
+                        style: TextStyle(color: state ? Colors.grey : Colors.orangeAccent),
+                        decoration: const InputDecoration(
+                          labelText: "Password",
+                            border: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.orangeAccent)),
+                            disabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.grey)),
+                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.grey)),
+                            focusedBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: Colors.orangeAccent))
+                        ),
+                        enabled: state ? false : true,
                       ),
-                      enabled: state ? false : true,
                     ),
                     MouseRegion(
-                      cursor: _loginButtonEnable
+                      cursor: _loginButtonEnable && !state
                           ? SystemMouseCursors.click
                           : SystemMouseCursors.forbidden,
                       child: GestureDetector(
-                        child: state
-                            ? const Text("Logging you in...",
-                                style: TextStyle(color: Colors.grey))
-                            : Text(
-                                "Login",
-                                style: _loginButtonEnable
-                                    ? const TextStyle(color: Colors.orange)
-                                    : const TextStyle(color: Colors.grey),
-                              ),
+                        child: Container(
+                          width: MediaQuery.sizeOf(context).width,
+                          margin: const EdgeInsets.only(left: 4, right: 4, top: 8, bottom: 8),
+                          padding: const EdgeInsets.only(left: 4, right: 4, top: 12, bottom: 12),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.all(Radius.circular(4)),
+                            color: (_loginButtonEnable && !state) ? Colors.orangeAccent : Colors.grey,
+                            border: Border.all(width: 2, color: (_loginButtonEnable && !state) ? Colors.orangeAccent : Colors.grey)
+                          ),
+                          child: Text(state ? "Logging you in..." : "Login", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+                        ),
                         onTap: () async {
                           if (_loginButtonEnable) {
                             _loginScreenController.login(
@@ -162,9 +179,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
-                );
-              },
-            ),
+                ),
+              );
+            },
           );
         },
       ),

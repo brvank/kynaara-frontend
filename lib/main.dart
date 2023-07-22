@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:kynaara_frontend/data/repositories/session_manager.dart';
 import 'package:kynaara_frontend/presentation/screens/home_screen.dart';
 import 'package:kynaara_frontend/presentation/screens/login_screen.dart';
-import 'package:kynaara_frontend/presentation/screens/redirect_screen.dart';
 import 'package:kynaara_frontend/utils/configurations/route_configuration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,7 +18,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   SessionManager sessionManager = SessionManager();
   bool loggedIn = false;
   SharedPreferences? sharedPreferences;
@@ -35,12 +34,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      routes: {
-        '/redirect' : (context) => const RedirectScreen()
-      },
       theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange)
-      ),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+          fontFamily: GoogleFonts.montserrat().fontFamily),
       home: loggedIn ? const HomeScreen() : const LoginScreen(),
     );
   }
@@ -49,7 +45,8 @@ class _MyAppState extends State<MyApp> {
     sharedPreferences = await SharedPreferences.getInstance();
 
     setState(() {
-      loggedIn = sessionManager.getToken(sharedPreferences!).isEmpty ? false : true;
+      loggedIn =
+          sessionManager.getToken(sharedPreferences!).isEmpty ? false : true;
     });
   }
 }
