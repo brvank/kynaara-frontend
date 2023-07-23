@@ -5,6 +5,7 @@ import 'package:kynaara_frontend/presentation/screens/login_screen.dart';
 import 'package:kynaara_frontend/presentation/views/channels_table_view.dart';
 import 'package:kynaara_frontend/presentation/views/products_table_view.dart';
 import 'package:kynaara_frontend/presentation/views/users_table_view.dart';
+import 'package:kynaara_frontend/presentation/widgets/navigation_button_tab.dart';
 import 'package:kynaara_frontend/presentation/widgets/session_expired_dialog.dart';
 
 class AdminPage extends StatefulWidget {
@@ -55,77 +56,59 @@ class _AdminPageState extends State<AdminPage> {
   void setUpTabViews() {
     if (widget.user.userLevel == 1) {
       //super admin
-      tabViews.add(Container(
-        color: Colors.greenAccent,
-        child: Center(
-          child: ChannelsTableView(
-            user: widget.user,
-          ),
+      tabViews.add(Center(
+        child: ChannelsTableView(
+          user: widget.user,
         ),
       ));
 
-      tabViews.add(Container(
+      tabViews.add(Center(
         child: UsersTableView(
           user: widget.user,
         ),
       ));
 
-      tabViews.add(Container(
-        child: Text("Stats"),
-      ));
+      tabViews.add(const Center(child: Text("Coming Soon!")));
+
     } else {
-      tabViews.add(Container(
-        color: Colors.greenAccent,
-        child: Center(
-          child: ProductsTableView(
-            user: widget.user,
-            salesPerson: false,
-          ),
+      tabViews.add(Center(
+        child: ProductsTableView(
+          user: widget.user,
+          salesPerson: false,
         ),
       ));
 
-      tabViews.add(Container(
+      tabViews.add(Center(
         child: UsersTableView(
           user: widget.user,
         ),
       ));
 
-      tabViews.add(Container(
-        child: Text("Stats"),
-      ));
+      tabViews.add(const Center(child: Text("Coming Soon!")));
     }
   }
 
   Widget sideNavigationTabsForSuperAdmin() {
     return Container(
-      color: Colors.red,
+      color: Colors.grey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            child: Text("Manage Channels"),
-            onTap: () {
-              setState(() {
-                selectedIndex = 0;
-              });
-            },
-          ),
-          GestureDetector(
-            child: Text("Manage Users"),
-            onTap: () {
-              setState(() {
-                selectedIndex = 1;
-              });
-            },
-          ),
-          GestureDetector(
-            child: Text("Stats"),
-            onTap: () {
-              setState(() {
-                selectedIndex = 2;
-              });
-            },
-          )
+          NavigationButtonTab(text: "Manage Channels", callback: (){
+            setState(() {
+              selectedIndex = 0;
+            });
+          }, selected: selectedIndex == 0),
+          NavigationButtonTab(text: "Manage Users", callback: (){
+            setState(() {
+              selectedIndex = 1;
+            });
+          }, selected: selectedIndex == 1),
+          NavigationButtonTab(text: "Stats", callback: (){
+            setState(() {
+              selectedIndex = 2;
+            });
+          }, selected: selectedIndex == 2),
         ],
       ),
     );
@@ -133,34 +116,25 @@ class _AdminPageState extends State<AdminPage> {
 
   Widget sideNavigationTabsForAdmin() {
     return Container(
-      color: Colors.red,
+      color: Colors.grey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GestureDetector(
-            child: Text("Manage Products"),
-            onTap: () {
-              setState(() {
-                selectedIndex = 0;
-              });
-            },
-          ),
-          GestureDetector(
-            child: Text("Manage Sales Persons"),
-            onTap: () {
-              setState(() {
-                selectedIndex = 1;
-              });
-            },
-          ),
-          GestureDetector(
-            child: Text("Stats"),
-            onTap: () {
-              setState(() {
-                selectedIndex = 2;
-              });
-            },
-          )
+          NavigationButtonTab(text: "Manage Products", callback: (){
+            setState(() {
+              selectedIndex = 0;
+            });
+          }, selected: selectedIndex == 0),
+          NavigationButtonTab(text: "Manage Users", callback: (){
+            setState(() {
+              selectedIndex = 1;
+            });
+          }, selected: selectedIndex == 1),
+          NavigationButtonTab(text: "Stats", callback: (){
+            setState(() {
+              selectedIndex = 2;
+            });
+          }, selected: selectedIndex == 2),
         ],
       ),
     );

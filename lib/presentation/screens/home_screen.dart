@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Visibility(
           child: Container(
             color: Color.fromARGB(150, 100, 100, 100),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2,)),
           ),
           visible: _homeScreenController.loaderBloc.state == true,
         ),

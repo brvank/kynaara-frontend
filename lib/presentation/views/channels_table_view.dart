@@ -6,7 +6,9 @@ import 'package:kynaara_frontend/business_logic/controller/channels_table_view_c
 import 'package:kynaara_frontend/data/model/channel.dart';
 import 'package:kynaara_frontend/data/model/user.dart';
 import 'package:kynaara_frontend/presentation/widgets/channel_dialog.dart';
+import 'package:kynaara_frontend/presentation/widgets/custom_button.dart';
 import 'package:kynaara_frontend/presentation/widgets/delete_confirmation_dialog.dart';
+import 'package:kynaara_frontend/utils/constants/ui_text_constants.dart';
 import 'package:kynaara_frontend/utils/constants/utility_functions.dart';
 
 class ChannelsTableView extends StatefulWidget {
@@ -20,9 +22,10 @@ class ChannelsTableView extends StatefulWidget {
 class _ChannelsTableViewState extends State<ChannelsTableView> {
   late ChannelsTableViewController _channelsTableController;
 
-  int start = 0, size = 2, end = 0, total = 0;
+  int start = 0, size = Constants.size, end = 0, total = 0;
 
-  TextEditingController channelNameController = TextEditingController();
+  TextEditingController _channelNameController = TextEditingController();
+  String _channelName = "";
 
   @override
   void initState() {
@@ -37,19 +40,18 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
 
   void getChannels() {
     _channelsTableController.getChannels(
-        start, size, channelNameController.text, (start, end, total) {
+        start, size, _channelName, (start, end, total) {
       this.start = start;
       this.end = end;
       this.total = total;
 
       setState(() {
-        Future.delayed(Duration.zero).then((value){
-          if(_channelsTableController.channels.isEmpty){
+        Future.delayed(Duration.zero).then((value) {
+          if (_channelsTableController.channels.isEmpty) {
             getPrev();
           }
         });
       });
-
     });
   }
 
@@ -82,38 +84,76 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
           builder: (context, state) {
             return BlocBuilder<LoaderBloc, bool>(builder: (context, state) {
               if (state == true) {
-                return Container(
-                  child: Center(
-                    child: CircularProgressIndicator(),
+                return const Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
                   ),
                 );
               } else {
                 return Container(
-                  margin: EdgeInsets.all(8),
-                  color: Colors.blue,
+                  margin: const EdgeInsets.all(8),
                   child: Column(
                     children: [
                       //all options
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          TextButton(
-                              onPressed: () {
+                          Expanded(flex: 1, child: TextField(
+                            controller: _channelNameController,
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              hintText: "Channel Name",
+                              contentPadding: EdgeInsets.all(8),
+                              border: OutlineInputBorder(borderSide: BorderSide(color: Colors.orangeAccent)),
+                            ),
+                          ),),
+                          CustomButton(
+                            text: "Search",
+                            callback: () {
+                              _channelName = _channelNameController.text;
+                              getChannels();
+                            },
+                          ),
+                          CustomButton(
+                            text: "Refresh",
+                            callback: () {
+                              getChannels();
+                            },
+                          ),
+                          CustomButton(
+                              text: "Add Channel",
+                              callback: () {
                                 addChannelDialog();
-                              },
-                              child: Text("Add Channel"))
+                              })
                         ],
                       ),
 
                       //all headings
                       Row(
                         children: [
-                          Expanded(flex: 1, child: Text("S.No.")),
-                          Expanded(flex: 2, child: Text("Name")),
-                          Expanded(flex: 2, child: Text("Link")),
-                          Expanded(flex: 2, child: Text("Date of Creation")),
-                          Expanded(flex: 1, child: Text("")),
-                          Expanded(flex: 1, child: Text("")),
+                          Expanded(
+                              flex: 1,
+                              child: TableTabs.headerTab(
+                                  "S.No.", TabDirection.LEFT)),
+                          Expanded(
+                              flex: 2,
+                              child: TableTabs.headerTab(
+                                  "Name", TabDirection.MID)),
+                          Expanded(
+                              flex: 2,
+                              child: TableTabs.headerTab(
+                                  "Link", TabDirection.MID)),
+                          Expanded(
+                              flex: 2,
+                              child: TableTabs.headerTab(
+                                  "Date of Creation", TabDirection.MID)),
+                          Expanded(
+                              flex: 1,
+                              child: TableTabs.headerTab("", TabDirection.MID)),
+                          Expanded(
+                              flex: 1,
+                              child:
+                                  TableTabs.headerTab("", TabDirection.RIGHT)),
                         ],
                       ),
 
@@ -124,61 +164,70 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
                               itemCount:
                                   _channelsTableController.channels.length,
                               itemBuilder: (context, i) {
-                                return Row(
-                                  children: [
-                                    Expanded(
-                                        flex: 1, child: Text("${i+1}")),
-                                    Expanded(
-                                        flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].name)),
-                                    Expanded(
-                                        flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].link)),
-                                    Expanded(
-                                        flex: 2,
-                                        child: Text(_channelsTableController
-                                            .channels[i].creationDate)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: TextButton(
-                                          child: Text("Edit"),
-                                          onPressed: () {
-                                            updateChannelDialog(_channelsTableController.channels[i]);
-                                          },
-                                        )),
-                                    Expanded(
-                                        flex: 1,
-                                        child: TextButton(
-                                          child: Text("Delete"),
-                                          onPressed: () {
-                                            deleteChannelDialog(_channelsTableController.channels[i].id);
-                                          },
-                                        )),
-                                  ],
+                                return Container(
+                                  decoration: const BoxDecoration(
+                                      border: Border(
+                                          bottom: BorderSide(
+                                              color: Colors.brown,
+                                              width: 0.2))),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          flex: 1,
+                                          child:
+                                              TableTabs.tableTab("${i + 1}")),
+                                      Expanded(
+                                          flex: 2,
+                                          child: TableTabs.tableTab(
+                                              _channelsTableController
+                                                  .channels[i].name)),
+                                      Expanded(
+                                          flex: 2,
+                                          child: TableTabs.tableTab(
+                                              _channelsTableController
+                                                  .channels[i].link)),
+                                      Expanded(
+                                          flex: 2,
+                                          child: TableTabs.tableTab(
+                                              _channelsTableController
+                                                  .channels[i].creationDate.substring(0, 10))),
+                                      Expanded(
+                                          flex: 1,
+                                          child: TableTabs.buttonTableTab(
+                                              "Edit", () {
+                                            updateChannelDialog(
+                                                _channelsTableController
+                                                    .channels[i]);
+                                          })),
+                                      Expanded(
+                                          flex: 1,
+                                          child: TableTabs.buttonTableTab(
+                                              "Delete", () {
+                                            deleteChannelDialog(
+                                                _channelsTableController
+                                                    .channels[i].id);
+                                          })),
+                                    ],
+                                  ),
                                 );
                               })),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          TextButton(
-                            child: Text("Refresh"),
-                            onPressed: () {
-                              getChannels();
-                            },
-                          ),
-                          TextButton(
-                            child: Text("Prev"),
-                            onPressed: () {
+                          CustomButton(
+                            text: "Prev",
+                            callback: () {
                               getPrev();
                             },
+                            active: (start - size) >= 0,
                           ),
                           Text("$end/$total"),
-                          TextButton(
-                            child: Text("Next"),
-                            onPressed: () {
+                          CustomButton(
+                            text: "Next",
+                            callback: () {
                               getNext();
                             },
+                            active: (start + size) < total,
                           )
                         ],
                       )
@@ -191,9 +240,9 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
         ));
   }
 
-  void getPrev(){
-    if(start != 0){
-      if((start - size) >= 0){
+  void getPrev() {
+    if (start != 0) {
+      if ((start - size) >= 0) {
         start = start - size;
 
         getChannels();
@@ -201,9 +250,9 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
     }
   }
 
-  void getNext(){
-    if(end <= total && total != 0){
-      if((start + size) < total){
+  void getNext() {
+    if (end <= total && total != 0) {
+      if ((start + size) < total) {
         start = start + size;
 
         getChannels();
@@ -239,40 +288,39 @@ class _ChannelsTableViewState extends State<ChannelsTableView> {
         });
   }
 
-  void updateChannelDialog(Channel channel){
+  void updateChannelDialog(Channel channel) {
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context){
-        return ChannelDialog(
-          callback: (Channel channel) async {
-            bool result = await _channelsTableController.updateChannel(channel);
-            await Future.delayed(Duration.zero);
-            if(result){
-              getChannels();
-            }
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return ChannelDialog(
+            callback: (Channel channel) async {
+              bool result =
+                  await _channelsTableController.updateChannel(channel);
+              await Future.delayed(Duration.zero);
+              if (result) {
+                getChannels();
+              }
 
-            return result;
-          },
-          edit: true,
-          channel: channel,
-        );
-      }
-    );
+              return result;
+            },
+            edit: true,
+            channel: channel,
+          );
+        });
   }
 
   void deleteChannelDialog(int id) async {
     bool? result = await showDialog(
-      context: context,
-      builder: (context){
-        return DeleteConfirmationDialog();
-      }
-    );
+        context: context,
+        builder: (context) {
+          return const DeleteConfirmationDialog();
+        });
 
-    if(result != null && result == true){
+    if (result != null && result == true) {
       bool result = await _channelsTableController.deleteChannel(id);
       await Future.delayed(Duration.zero);
-      if(result){
+      if (result) {
         getChannels();
       }
     }

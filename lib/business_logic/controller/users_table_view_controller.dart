@@ -36,7 +36,7 @@ class UsersTableViewController {
           q = "";
         }
 
-        url = "$url?start=$start&size=$size&q=$q";
+        url = "$url?start=$start&size=$size&userName=$q";
 
         //getting response
         Response response = await apiService.execute(url, ApiMethod.get);

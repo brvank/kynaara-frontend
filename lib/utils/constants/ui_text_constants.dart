@@ -5,3 +5,7 @@ class UITextConstants{
       , deleteConfirmation = "Are you sure you want to delete?"
       , channelNotSelected = "Please select a channel first!";
 }
+
+class Constants{
+  static int size = 10;
+}

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:kynaara_frontend/data/model/channel.dart';
+import 'package:kynaara_frontend/presentation/widgets/custom_button.dart';
 import 'package:kynaara_frontend/service/network/api_service.dart';
 import 'package:kynaara_frontend/utils/constants/apis.dart';
 
@@ -14,8 +15,8 @@ class ChannelSelectDialog extends StatefulWidget {
 }
 
 class _ChannelSelectDialogState extends State<ChannelSelectDialog> {
-
-  TextEditingController _channelNameTextEditingController = TextEditingController();
+  TextEditingController _channelNameTextEditingController =
+      TextEditingController();
   bool loading = false;
   bool error = false;
 
@@ -30,11 +31,11 @@ class _ChannelSelectDialogState extends State<ChannelSelectDialog> {
     timer = null;
 
     _channelNameTextEditingController.addListener(() {
-      if(_channelNameTextEditingController.text.isNotEmpty){
+      if (_channelNameTextEditingController.text.isNotEmpty) {
         resetTimer();
-      }else{
-        if(timer != null){
-          if(timer!.isActive){
+      } else {
+        if (timer != null) {
+          if (timer!.isActive) {
             timer!.cancel();
           }
         }
@@ -42,14 +43,12 @@ class _ChannelSelectDialogState extends State<ChannelSelectDialog> {
     });
   }
 
-  void resetTimer(){
+  void resetTimer() {
     error = false;
     loading = false;
-    setState(() {
-
-    });
-    if(timer != null){
-      if(timer!.isActive){
+    setState(() {});
+    if (timer != null) {
+      if (timer!.isActive) {
         timer!.cancel();
       }
     }
@@ -66,55 +65,101 @@ class _ChannelSelectDialogState extends State<ChannelSelectDialog> {
 
     error = false;
     loading = true;
-    try{
-      var response = await apiService.execute("${apIs.baseUrl}${apIs.getChannels}?start=0&size=3&q=${_channelNameTextEditingController.text}", ApiMethod.get);
+    try {
+      var response = await apiService.execute(
+          "${apIs.baseUrl}${apIs.getChannels}?start=0&size=3&q=${_channelNameTextEditingController.text}",
+          ApiMethod.get);
       var jsonArray = jsonDecode(response.body)['data']['result'];
 
-      for(int i=0;i<jsonArray.length;i++){
+      channels = [];
+
+      for (int i = 0; i < jsonArray.length; i++) {
         channels.add(Channel.fromJson(jsonArray[i]));
       }
-
-    }catch(e){
+    } catch (e) {
       error = true;
     }
 
     loading = false;
 
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text("Select Channel"),
-          TextField(
-            decoration: InputDecoration(
-              hintText: "Search Channel"
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        width: MediaQuery.sizeOf(context).width * 0.6,
+        height: MediaQuery.sizeOf(context).height * 0.5,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.all(8),
+              child: TextField(
+                autofocus: true,
+                cursorColor: Colors.deepOrange,
+                controller: _channelNameTextEditingController,
+                decoration: const InputDecoration(
+                    labelText: "Search Channel",
+                    border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(width: 1, color: Colors.orangeAccent)),
+                    disabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 1, color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 1, color: Colors.grey)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(width: 1, color: Colors.orangeAccent))),
+                enabled: !loading,
+              ),
             ),
-            controller: _channelNameTextEditingController,
-          ),
-          loading ? CircularProgressIndicator() : (error ? Text("Something went wrong!") : Expanded(
-            flex: 1,
-            child: ListView.builder(itemBuilder: (context, i){
-              return ListTile(
-                title: Text(channels[i].name),
-                onTap: (){
-                  returnChannel(channels[i]);
-                },
-              );
-            }, itemCount: channels.length,),
-          ))
-        ],
+            loading
+                ? const Expanded(
+                    flex: 1,
+                    child: Center(
+                        child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    )),
+                  )
+                : (error
+                    ? const Expanded(
+                        flex: 1,
+                        child: Center(
+                            child: Text(
+                          "Something went wrong!",
+                          style: TextStyle(
+                              color: Colors.brown, fontWeight: FontWeight.bold),
+                        )),
+                      )
+                    : Expanded(
+                        flex: 1,
+                        child: ListView.builder(
+                          itemBuilder: (context, i) {
+                            return ListTile(
+                              title: Text(channels[i].name),
+                              onTap: () {
+                                returnChannel(channels[i]);
+                              },
+                            );
+                          },
+                          itemCount: channels.length,
+                        ),
+                      )),
+            CustomButton(
+                text: "Cancel",
+                callback: () {
+                  Navigator.pop(context);
+                })
+          ],
+        ),
       ),
     );
   }
 
-  void returnChannel(Channel channel){
+  void returnChannel(Channel channel) {
     Navigator.pop(context, channel);
   }
 }

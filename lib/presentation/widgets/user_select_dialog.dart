@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:kynaara_frontend/data/model/user.dart';
+import 'package:kynaara_frontend/presentation/widgets/custom_button.dart';
 import 'package:kynaara_frontend/service/network/api_service.dart';
 import 'package:kynaara_frontend/utils/constants/apis.dart';
 
@@ -15,8 +16,8 @@ class UserSelectDialog extends StatefulWidget {
 }
 
 class _UserSelectDialogState extends State<UserSelectDialog> {
-
-  TextEditingController _userNameTextEditingController = TextEditingController();
+  TextEditingController _userNameTextEditingController =
+      TextEditingController();
   bool loading = false;
   bool error = false;
 
@@ -31,11 +32,11 @@ class _UserSelectDialogState extends State<UserSelectDialog> {
     timer = null;
 
     _userNameTextEditingController.addListener(() {
-      if(_userNameTextEditingController.text.isNotEmpty){
+      if (_userNameTextEditingController.text.isNotEmpty) {
         resetTimer();
-      }else{
-        if(timer != null){
-          if(timer!.isActive){
+      } else {
+        if (timer != null) {
+          if (timer!.isActive) {
             timer!.cancel();
           }
         }
@@ -43,14 +44,12 @@ class _UserSelectDialogState extends State<UserSelectDialog> {
     });
   }
 
-  void resetTimer(){
+  void resetTimer() {
     error = false;
     loading = false;
-    setState(() {
-
-    });
-    if(timer != null){
-      if(timer!.isActive){
+    setState(() {});
+    if (timer != null) {
+      if (timer!.isActive) {
         timer!.cancel();
       }
     }
@@ -67,55 +66,101 @@ class _UserSelectDialogState extends State<UserSelectDialog> {
 
     error = false;
     loading = true;
-    try{
-      var response = await apiService.execute("${apIs.baseUrl}${apIs.getUsers}?start=0&size=3&userName=${_userNameTextEditingController.text}&userLevel=${widget.userLevel}", ApiMethod.get);
+    try {
+      var response = await apiService.execute(
+          "${apIs.baseUrl}${apIs.getUsers}?start=0&size=3&userName=${_userNameTextEditingController.text}&userLevel=${widget.userLevel}",
+          ApiMethod.get);
       var jsonArray = jsonDecode(response.body)['data']['result'];
 
-      for(int i=0;i<jsonArray.length;i++){
+      users = [];
+
+      for (int i = 0; i < jsonArray.length; i++) {
         users.add(User.fromJson(jsonArray[i]));
       }
-
-    }catch(e){
+    } catch (e) {
       error = true;
     }
 
     loading = false;
 
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text("Select User"),
-          TextField(
-            decoration: InputDecoration(
-                hintText: "Search User"
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        width: MediaQuery.sizeOf(context).width * 0.6,
+        height: MediaQuery.sizeOf(context).height * 0.5,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.all(8),
+              child: TextField(
+                autofocus: true,
+                cursorColor: Colors.deepOrange,
+                controller: _userNameTextEditingController,
+                decoration: const InputDecoration(
+                    labelText: "Search Channel",
+                    border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(width: 1, color: Colors.orangeAccent)),
+                    disabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 1, color: Colors.grey)),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 1, color: Colors.grey)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(width: 1, color: Colors.orangeAccent))),
+                enabled: !loading,
+              ),
             ),
-            controller: _userNameTextEditingController,
-          ),
-          loading ? CircularProgressIndicator() : (error ? Text("Something went wrong!") : Expanded(
-            flex: 1,
-            child: ListView.builder(itemBuilder: (context, i){
-              return ListTile(
-                title: Text(users[i].name),
-                onTap: (){
-                  returnUser(users[i]);
-                },
-              );
-            }, itemCount: users.length,),
-          ))
-        ],
+            loading
+                ? const Expanded(
+                    flex: 1,
+                    child: Center(
+                        child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    )),
+                  )
+                : (error
+                    ? const Expanded(
+                        flex: 1,
+                        child: Center(
+                            child: Text(
+                          "Something went wrong!",
+                          style: TextStyle(
+                              color: Colors.brown, fontWeight: FontWeight.bold),
+                        )),
+                      )
+                    : Expanded(
+                        flex: 1,
+                        child: ListView.builder(
+                          itemBuilder: (context, i) {
+                            return ListTile(
+                              title: Text(users[i].name),
+                              onTap: () {
+                                returnUser(users[i]);
+                              },
+                            );
+                          },
+                          itemCount: users.length,
+                        ),
+                      )),
+            CustomButton(
+                text: "Cancel",
+                callback: () {
+                  Navigator.pop(context);
+                })
+          ],
+        ),
       ),
     );
   }
 
-  void returnUser(User user){
+  void returnUser(User user) {
     Navigator.pop(context, user);
   }
 }

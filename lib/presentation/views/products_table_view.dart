@@ -7,6 +7,8 @@ import 'package:kynaara_frontend/data/model/channel.dart';
 import 'package:kynaara_frontend/data/model/product.dart';
 import 'package:kynaara_frontend/data/model/user.dart';
 import 'package:kynaara_frontend/presentation/widgets/channel_select_dialog.dart';
+import 'package:kynaara_frontend/presentation/widgets/custom_button.dart';
+import 'package:kynaara_frontend/presentation/widgets/custom_select_button.dart';
 import 'package:kynaara_frontend/presentation/widgets/product_dialog.dart';
 import 'package:kynaara_frontend/presentation/widgets/delete_confirmation_dialog.dart';
 import 'package:kynaara_frontend/presentation/widgets/user_select_dialog.dart';
@@ -27,11 +29,12 @@ class ProductsTableView extends StatefulWidget {
 class _ProductsTableViewState extends State<ProductsTableView> {
   late ProductsTableViewController _productsTableController;
 
-  int start = 0, size = 2, end = 0, total = 0;
+  int start = 0, size = Constants.size, end = 0, total = 0;
 
-  Channel? channel = null;
+  TextEditingController _productLinkController = TextEditingController();
+  String _productLink = "";
 
-  TextEditingController productNameController = TextEditingController();
+  Channel? channel;
 
   @override
   void initState() {
@@ -47,14 +50,20 @@ class _ProductsTableViewState extends State<ProductsTableView> {
       _productsTableController.getProducts(
           start,
           size,
-          productNameController.text,
+          _productLink,
           channel!.id,
           (widget.salesPerson ? widget.user.id : null), (start, end, total) {
         this.start = start;
         this.end = end;
         this.total = total;
 
-        setState(() {});
+        setState(() {
+          Future.delayed(Duration.zero).then((value) {
+            if (_productsTableController.products.isEmpty) {
+              getPrev();
+            }
+          });
+        });
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -93,47 +102,113 @@ class _ProductsTableViewState extends State<ProductsTableView> {
           builder: (context, state) {
             return BlocBuilder<LoaderBloc, bool>(builder: (context, state) {
               if (state == true) {
-                return Container(
-                  child: Center(
-                    child: CircularProgressIndicator(),
+                return const Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
                   ),
                 );
               } else {
                 return Container(
-                  margin: EdgeInsets.all(8),
-                  color: Colors.blue,
+                  margin: const EdgeInsets.all(8),
                   child: Column(
                     children: [
+                      //extra options
+                      Row(
+                        children: [
+                          CustomSelectButton(
+                              selectedText:
+                                  channel == null ? "" : channel!.name,
+                              labelText: "Selected Channel",
+                              text: "Select Channel",
+                              callback: () async {
+                                channel = await showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return const ChannelSelectDialog();
+                                    });
+
+                                if (channel != null) {
+                                  getProducts();
+                                }
+                              }),
+                        ],
+                      ),
                       //all options
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          TextButton(
-                              onPressed: () async {
-                                channel = await showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return ChannelSelectDialog();
-                                    });
-                              },
-                              child: Text("Select Channel")),
-                          TextButton(
-                              onPressed: () {
-                                addProductDialog();
-                              },
-                              child: Text("Add Product")),
+                          Expanded(
+                            flex: 1,
+                            child: TextField(
+                              controller: _productLinkController,
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                hintText: "Product Link",
+                                contentPadding: EdgeInsets.all(8),
+                                border: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.orangeAccent)),
+                              ),
+                            ),
+                          ),
+                          CustomButton(
+                            text: "Search",
+                            callback: () {
+                              _productLink = _productLinkController.text;
+                              getProducts();
+                            },
+                          ),
+                          CustomButton(
+                            text: "Refresh",
+                            callback: () {
+                              getProducts();
+                            },
+                          ),
+                          CustomButton(
+                              text: "Add Product",
+                              callback: () {
+                                if (channel != null) {
+                                  addProductDialog();
+                                } else {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                    content: Text(
+                                        UITextConstants.channelNotSelected),
+                                    duration: const Duration(seconds: 2),
+                                  ));
+                                }
+                              }),
                         ],
                       ),
                       //all headings
                       Row(
                         children: [
-                          Expanded(flex: 1, child: Text("S.No.")),
-                          Expanded(flex: 2, child: Text("Product Url")),
-                          Expanded(flex: 2, child: Text("Link")),
-                          Expanded(flex: 2, child: Text("Date of Creation")),
-                          Expanded(flex: 1, child: Text("")),
-                          Expanded(flex: 1, child: Text("")),
-                          Expanded(flex: 1, child: Text("")),
+                          Expanded(
+                              flex: 1,
+                              child: TableTabs.headerTab(
+                                  "S.No.", TabDirection.LEFT)),
+                          Expanded(
+                              flex: 2,
+                              child: TableTabs.headerTab(
+                                  "Product Url", TabDirection.MID)),
+                          Expanded(
+                              flex: 2,
+                              child: TableTabs.headerTab(
+                                  "Link", TabDirection.MID)),
+                          Expanded(
+                              flex: 2,
+                              child: TableTabs.headerTab(
+                                  "Date of Creation", TabDirection.MID)),
+                          Expanded(
+                              flex: 1,
+                              child: TableTabs.headerTab("", TabDirection.MID)),
+                          Expanded(
+                              flex: 1,
+                              child: TableTabs.headerTab("", TabDirection.MID)),
+                          Expanded(
+                              flex: 1,
+                              child:
+                                  TableTabs.headerTab("", TabDirection.RIGHT)),
                         ],
                       ),
 
@@ -144,80 +219,95 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                               itemCount:
                                   _productsTableController.products.length,
                               itemBuilder: (context, i) {
-                                return Row(
-                                  children: [
-                                    Expanded(flex: 1, child: Text("${i + 1}")),
-                                    Expanded(
-                                        flex: 2,
-                                        child: Text(_productsTableController
-                                            .products[i].link)),
-                                    Expanded(
-                                        flex: 2,
-                                        child: Text(_productsTableController
-                                            .products[i].imageLink)),
-                                    Expanded(
-                                        flex: 2,
-                                        child: Text(_productsTableController
-                                            .products[i].dateCreated)),
-                                    Expanded(
-                                        flex: 1,
-                                        child: TextButton(
-                                          child: Text("Edit"),
-                                          onPressed: () {
-                                            updateProductDialog(
-                                                _productsTableController
-                                                    .products[i]);
-                                          },
-                                        )),
-                                    Expanded(
-                                        flex: 1,
-                                        child: TextButton(
-                                          child: _productsTableController.products[i].assigneeId == null ? Text("Assign") : Text("Re-Assign"),
-                                          onPressed: () async {
-                                            User? user = await showDialog(context: context, builder: (context){
-                                              return UserSelectDialog(userLevel: userLevel(salesPerson),);
-                                            });
+                                return Container(
+                                  decoration: const BoxDecoration(
+                                      border: Border(
+                                          bottom: BorderSide(
+                                              color: Colors.brown,
+                                              width: 0.2))),
+                                  child: Row(
+                                    children: [
+                                      Expanded(flex: 1, child: TableTabs.tableTab("${i + 1}")),
+                                      Expanded(
+                                          flex: 2,
+                                          child: TableTabs.tableTab(_productsTableController
+                                              .products[i].link)),
+                                      Expanded(
+                                          flex: 2,
+                                          child: TableTabs.tableTab(_productsTableController
+                                              .products[i].imageLink)),
+                                      Expanded(
+                                          flex: 2,
+                                          child: TableTabs.tableTab(_productsTableController
+                                              .products[i].dateCreated)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: TableTabs.buttonTableTab(
+                                            "Edit", () {
+                                              updateProductDialog(
+                                                  _productsTableController
+                                                      .products[i]);
+                                            },
+                                          )),
+                                      Expanded(
+                                          flex: 1,
+                                          child: TableTabs.buttonTableTab(
+                                            _productsTableController
+                                                        .products[i].assigneeId ==
+                                                    null
+                                                ? "Assign"
+                                                : "Re-Assign", () async {
+                                              User? user = await showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return UserSelectDialog(
+                                                      userLevel:
+                                                          userLevel(salesPerson),
+                                                    );
+                                                  });
 
-                                            if(user != null){
-                                              await _productsTableController.assignProduct(_productsTableController.products[i].id, user.id);
-                                              await Future.delayed(Duration.zero);
-                                              getProducts();
-                                            }
-                                          },
-                                        )),
-                                    Expanded(
-                                        flex: 1,
-                                        child: TextButton(
-                                          child: Text("Delete"),
-                                          onPressed: () {
-                                            deleteProductDialog(
-                                                _productsTableController
-                                                    .products[i].id);
-                                          },
-                                        )),
-                                  ],
+                                              if (user != null) {
+                                                await _productsTableController
+                                                    .assignProduct(
+                                                        _productsTableController
+                                                            .products[i].id,
+                                                        user.id);
+                                                await Future.delayed(
+                                                    Duration.zero);
+                                                getProducts();
+                                              }
+                                            },
+                                          )),
+                                      Expanded(
+                                          flex: 1,
+                                          child: TableTabs.buttonTableTab(
+                                            "Delete", () {
+                                              deleteProductDialog(
+                                                  _productsTableController
+                                                      .products[i].id);
+                                            },
+                                          )),
+                                    ],
+                                  ),
                                 );
                               })),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          TextButton(
-                            child: Text("Refresh"),
-                            onPressed: () {
-                              getProducts();
-                            },
-                          ),
-                          TextButton(
-                            child: Text("Prev"),
-                            onPressed: () {
+                          CustomButton(
+                            text: "Prev",
+                            callback: () {
                               getPrev();
                             },
+                            active: (start - size) >= 0,
                           ),
                           Text("$end/$total"),
-                          TextButton(
-                            child: Text("Next"),
-                            onPressed: () {
+                          CustomButton(
+                            text: "Next",
+                            callback: () {
                               getNext();
                             },
+                            active: (start + size) < total,
                           )
                         ],
                       )
@@ -254,7 +344,7 @@ class _ProductsTableViewState extends State<ProductsTableView> {
     Product product = Product(
         id: -1,
         creatorId: -1,
-        channelId: -1,
+        channelId: channel!.id,
         assigneeId: -1,
         link: "",
         imageLink: "",

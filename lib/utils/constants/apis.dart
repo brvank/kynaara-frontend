@@ -27,6 +27,9 @@ class APIs{
   String updateChannel = "/api/v1/channel/update";
   String deleteChannel = "/api/v1/channel/delete/";
 
+  //redirect apis
+  String redirect = "/api/v1/redirect";
+
   APIs(){
     if(kDebugMode){
       _protocol = "http://";
