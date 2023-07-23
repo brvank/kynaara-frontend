@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/loading_bloc.dart';
 import 'package:kynaara_frontend/business_logic/blocs/message_bloc.dart';
@@ -207,6 +208,9 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                               child: TableTabs.headerTab("", TabDirection.MID)),
                           Expanded(
                               flex: 1,
+                              child: TableTabs.headerTab("", TabDirection.MID)),
+                          Expanded(
+                              flex: 1,
                               child:
                                   TableTabs.headerTab("", TabDirection.RIGHT)),
                         ],
@@ -240,6 +244,17 @@ class _ProductsTableViewState extends State<ProductsTableView> {
                                           flex: 2,
                                           child: TableTabs.tableTab(_productsTableController
                                               .products[i].dateCreated)),
+                                      Expanded(
+                                          flex: 1,
+                                          child: TableTabs.buttonTableTab(
+                                            "Copy Link", () {
+                                            Clipboard.setData(ClipboardData(text: createProductRedirectLink(_productsTableController.products[i].link)));
+                                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                              content: Text("Link Copied"),
+                                              duration: Duration(seconds: 1),
+                                            ));
+                                          },
+                                          )),
                                       Expanded(
                                           flex: 1,
                                           child: TableTabs.buttonTableTab(

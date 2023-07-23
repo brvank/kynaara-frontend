@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kynaara_frontend/presentation/screens/login_screen.dart';
 import 'package:kynaara_frontend/presentation/widgets/custom_button.dart';
 import 'package:kynaara_frontend/presentation/widgets/session_expired_dialog.dart';
+import 'package:kynaara_frontend/utils/constants/apis.dart';
 
 String superAdmin = "Super Admin", admin = "Admin", salesPerson = "Sales Person";
 
@@ -29,6 +30,10 @@ int userLevel(String userType){
   int? result = userMap[userType];
   result ??= 0;
   return result;
+}
+
+String createProductRedirectLink(String productLink){
+  return "${APIs().baseUrl}${APIs().redirect}?q=$productLink";
 }
 
 enum TabDirection{
